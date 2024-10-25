@@ -1,0 +1,55 @@
+---
+#네임스페이스 작성 (별도의 프로젝트 작업을 위한공간)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: samsung
+
+---
+#deployment 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samsung-deploy
+  namespace: samsung
+  labels:
+    app: web
+    part: cloud
+spec: # 레플리카  
+  replicas: 3
+  selector:  #어떤 라벨을 확인할 것인가?
+    matchLabels:
+      app: web #deploy의 라벨이 아니라 , pod의 라벨을 지정한다
+  template: #이부분부터 pod 대한 정의
+    metadata: # name을 별도로 지정할 필요 없음 deploy,rs,pod 이름 자동부여
+      labels: 
+        app: web
+    spec:  # pod내에 들어갈 것들 (컨테이너)
+      containers:
+        - name: web
+          image: nginx
+          ports: 
+          - containerPort: 80
+
+
+---
+#service lb 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: samsung-lb
+  namespace: samsung
+spec:
+  type: LoadBalancer
+  selector: 
+    app: web #pod의 라벨 
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80 
+    # 노드 포트 램덤이므로 지정할 필요 없음 . 여러 서비스가 노드포트를 공유하므로 겹치지 않도록 여러므로 좋다 
+
+
